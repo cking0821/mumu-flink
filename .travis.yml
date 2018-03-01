@@ -1,0 +1,17 @@
+language: java
+
+os: linux
+
+env:
+  global:
+    - HADOOP_ADDRESS=hdfs://192.168.11.25:9000
+
+sudo: required
+
+jdk:
+  - oraclejdk8
+
+script: mvn clean install cobertura:cobertura
+
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
