@@ -22,8 +22,10 @@ public class WordCountBatch {
             @Override
             public void flatMap(final String line, final Collector<Tuple2<String, Integer>> collector) throws Exception {
                 System.out.println(line);
-                for (String word : line.split("\\s")) {
-                    collector.collect(new Tuple2<>(word, 1));
+                for (String word : line.split("\\s+")) {
+                    if(!word.isEmpty()){
+                        collector.collect(new Tuple2<>(word, 1));
+                    }
                 }
             }
         });
@@ -35,7 +37,6 @@ public class WordCountBatch {
         ExecutionEnvironment executionEnvironment = MumuFlinkConfiguration.executionEnvironment();
         DataSet<String> dataSet = executionEnvironment.fromElements(elements);
         wordCount(dataSet);
-
     }
 
     public void textFile(String filePath) throws Exception {

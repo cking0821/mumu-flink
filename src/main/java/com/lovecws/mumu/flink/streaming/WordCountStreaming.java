@@ -10,7 +10,6 @@ import org.apache.flink.streaming.api.datastream.DataStreamSource;
 import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.source.FileProcessingMode;
-import org.apache.flink.streaming.api.windowing.time.Time;
 import org.apache.flink.util.Collector;
 
 public class WordCountStreaming {
@@ -25,15 +24,15 @@ public class WordCountStreaming {
         SingleOutputStreamOperator<Tuple2<String, Long>> outputStream = dataStream.flatMap(new FlatMapFunction<String, Tuple2<String, Long>>() {
             @Override
             public void flatMap(final String line, final Collector<Tuple2<String, Long>> collector) throws Exception {
-                for (String word : line.split(" ")) {
-                    collector.collect(new Tuple2<>(word, 1l));
+                for (String word : line.split("\\s+")) {
+                    collector.collect(new Tuple2<>(word.trim(), 1l));
                 }
             }
         });
         SingleOutputStreamOperator<Tuple2<String, Long>> reduceStream = null;
         if (window) {
             reduceStream = outputStream.keyBy(0)
-                    .timeWindow(Time.seconds(5), Time.seconds(1))
+                    //.countWindow(5)
                     .reduce(new ReduceFunction<Tuple2<String, Long>>() {
                         @Override
                         public Tuple2<String, Long> reduce(final Tuple2<String, Long> tuple2, final Tuple2<String, Long> tuple22) throws Exception {
@@ -41,15 +40,8 @@ public class WordCountStreaming {
                         }
                     });
         } else {
-            reduceStream = outputStream.keyBy(0)
-                    .reduce(new ReduceFunction<Tuple2<String, Long>>() {
-                        @Override
-                        public Tuple2<String, Long> reduce(final Tuple2<String, Long> tuple2, final Tuple2<String, Long> tuple22) throws Exception {
-                            return new Tuple2<>(tuple2.f0, tuple2.f1 + tuple22.f1);
-                        }
-                    });
+            reduceStream = outputStream.keyBy(0).sum(1);
         }
-        reduceStream = reduceStream.keyBy(0).sum(1);
         reduceStream.print().setParallelism(1);
     }
 
@@ -66,6 +58,7 @@ public class WordCountStreaming {
     }
 
     /**
+     * 持续监控一个文件 如果只是监控文件的生成 则没有问题 如果监控文件持续添加 则会出现重复问题
      * @param filePath
      */
     public void continuouslyFile(String filePath) throws Exception {

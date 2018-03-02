@@ -13,7 +13,6 @@ public class WordCountStreamingTest {
 
     @Test
     public void file() throws Exception {
-        //wordCountStreaming.file("E:\\\\mumu\\\\flink\\\\streaming");
         wordCountStreaming.file("hdfs://192.168.11.25:9000/mumu/spark/file");
     }
 
@@ -29,6 +28,6 @@ public class WordCountStreamingTest {
 
     @Test
     public void collection() throws Exception {
-        wordCountStreaming.collection("lovecws", "love", "babymm lovecws");
+        wordCountStreaming.collection("lovecws", "love", "babymm  lovecws","love  ");
     }
 }
